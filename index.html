@@ -22,71 +22,120 @@
     <script src="js/angular.js"></script>
     <script src="js/Chart.js"></script>
     <script src="js/angular-chart.js"></script>
+    <script src="js/angular-busy.js"></script>
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/angular-chart.css">
+    <link rel="stylesheet" href="css/angular-busy.css">
   </head>
   <body ng-app="formExample">
     <div class="container-fluid" ng-controller="ExampleController">
       <h1 align="center">Sample Web App for Geeknesia API</h1>
       <hr>
       <div class="row">
-        <div class="col-md-5 col-md-offset-1">
-          <form class="simple-form">
-            <div class="form-group">
-              <label for="apiKey">API Key</label>
-              <input type="text" class="form-control" id="apiKey" placeholder="Enter API Key" ng-model="device.apiKey">
-              <pre>sample : d5eb7e61ca97bc30692d7aec3bb5861f</pre>
-              <label for="attributes">Attributes</label>
-              <input type="text" class="form-control" id="attributes" ng-model="device.attributes" placeholder="Enter data using json format and no space">
-              <pre>sample = {"temperature":"25"}</pre>
+        <div class="col-md-4">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              Send Data Sensor to Geeknesia
             </div>
-            
-            <button type="button" class="btn btn-default" ng-click="execute(device)" id="submit">Submit</button>
-            <button type="button" class="btn btn-default" ng-click="getFeeds()" id="getFeed">Get Feeds</button>
-          </form>
-        </div>
-        <div class="col-md-5 col-md-offset-1">
-          <table class="table table-stripped">
-            <tr>
-              <th>Date</th>
-              <th>Data</th>
-            </tr>
-            <tr ng-repeat="x in output.data">
-              <td>{{ x.datetime | date : 'd MMM yyyy H:mm:ss'}}</td>
-              <td>{{ formatOutput(x.attributes) }}</td>
-            </tr>
-          </table>
-        </div>
-      </div>
+            <div cg-busy="{promise:myPromise,message:'Sending Sensor Data'}"></div>
+            <div class="panel-body">
+              <form >
+                <div class="form-group">
+                  <label for="apiKey">API Key</label>
+                  <input type="text" class="form-control" id="apiKey" placeholder="Enter API Key" ng-model="device.apiKey">
+                  <pre>sample : d5eb7e61ca97bc30692d7aec3bb5861f</pre>
+                  <label for="attributes">Attributes</label>
+                  <input type="text" class="form-control" id="attributes" ng-model="device.attributes" placeholder="Enter data using json format and no space">
+                  <pre>sample = {"temperature":"25"}</pre>
+                </div>
+                
+                <button type="button" class="btn btn-default" ng-click="execute(device)" id="submit">Send Data</button>
+              </form>
+            </div>
+          </div>
 
-      <div class="row">
-         <canvas class="chart chart-line" id="line" data="dataSeries" labels="labels" 
+          <div class="panel panel-info">
+            <div class="panel-heading">
+              Sensor Data Feed
+            </div>
+            <div class="panel-body">
+              <table class="table table-stripped">
+                <tr>
+                  <th>Date</th>
+                  <th>Data</th>
+                </tr>
+                <tr ng-repeat="x in output.data">
+                  <td>{{ x.datetime | date : 'd MMM yyyy H:mm:ss'}}</td>
+                  <td>{{ formatOutput(x.attributes) }}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8 table-responsive">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              Setting for retrieving data
+            </div>
+            <div class="panel-body">
+              <form class="form-inline">
+                <div class="form-group">
+                  <input type="number" class="form-control" id="limit" placeholder="Limit" ng-model="setting.limit">
+                  <label>
+                    <input type="checkbox" value="datetime" ng-model="setting.filter" id="filter">
+                    Filter
+                  </label>
+                  <div class='input-group date' id='datetimepicker1'>
+                      <input type='text' class="form-control" placeholder="Date start" ng-model="setting.dateStart"/>
+                      <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                      </span>
+                  </div>
+                  <div class='input-group date' id='datetimepicker2'>
+                      <input type='text' class="form-control" placeholder="Date end" ng-model="setting.dateEnd"/>
+                      <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                      </span>
+                  </div>
+                  <button type="button" class="btn btn-default" ng-click="update(setting)" id="submit">Update</button>
+                </div>
+                
+              </form>
+            </div>
+          </div>
+          
+          <canvas class="chart chart-line" id="line" data="dataSeries" labels="labels" 
     legend="true" series="series" click="onClick">
           
         </canvas>
+        </div>
       </div>
-      
     </div>
 
     <script>
-      var myApp = angular.module('formExample', ["chart.js"]);
+      var myApp = angular.module('formExample', ["chart.js", 'cgBusy']);
       myApp.config(['$httpProvider', function($httpProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 delete $httpProvider.defaults.headers.common['X-Requested-With'];
             }
         ]);
 
-      myApp.controller('ExampleController', ['$scope', '$http', '$interval', function($scope, $http, $interval) {
+      myApp.controller('ExampleController', ['$scope', '$http', '$interval', '$filter', function($scope, $http, $interval, $filter) {
           // general variable with default value
           $scope.url = 'http://api.geeknesia.com/api';
           $scope.apiKey = 'd5eb7e61ca97bc30692d7aec3bb5861f';
+          $scope.myPromise;
 
           // getFeed response variable
           $scope.output;
+          $scope.limit = 10;
+          $scope.filter = false;
+          $scope.dateStart = '';
+          $scope.dateEnd = '';
 
           // graph variable
           $scope.labels = [];
-          $scope.series = ['Device'];
+          $scope.series = [];
           $scope.dataSeries = [];
           var emptyArray = [];
 
@@ -118,15 +167,48 @@
             }
           }
 
+          $scope.update = function(setting) {
+            if (typeof(setting) == 'undefined') {
+              alert ('Tidak boleh kosong');
+              return;
+            }
+            if (setting.filter == true) {
+              if (typeof(setting.dateStart) == 'undefined' || typeof(setting.dateEnd) == 'undefined') {
+                alert('Field tanggal harus di isi')
+              } else {
+                $scope.dateStart = setting.dateStart;
+                $scope.dateEnd = setting.dateEnd;
+                $scope.filter = setting.filter; 
+                $scope.limit = setting.limit;
+              }
+            } else {
+              if (typeof(setting.limit) == 'undefined') {
+                alert('Limit tidak boleh kosong');
+              } else {
+                $scope.limit = setting.limit;  
+              }
+              
+            }
+            
+          }
+
           $scope.execute = function(device) {
             if (this.validateForm(device) == false) {
               alert('Fill all the fields');
             } else {
               this.apiKey = device.apiKey;
               if (this.isValidJSON(device.attributes)) {
-                $http.jsonp(this.url + '/data?api_key=' + device.apiKey + '&attributes=' + device.attributes, {method:'GET', headers:{
-                    'Content-Type' : 'text/plain'
-                }});
+                $scope.myPromise = $http.get(this.url + '/data?api_key=' + device.apiKey + '&attributes=' + device.attributes, 
+                  {
+                    method:'GET', 
+                    headers:{
+                      'Content-Type' : 'text/plain'
+                    }
+                  }
+                )
+                .success(function(data, status, headers, config) {
+                  console.log(data);
+                });
               } else {
                 alert('Invalid format for attributes');
               }  
@@ -137,13 +219,23 @@
             if (this.apiKey == null) {
               return false;
             } else {
+              if ($scope.filter == true) {
+                var dataFilter = {
+                  'limit': $scope.limit,
+                  'filter': 'datetime',
+                  'from': $scope.dateStart,
+                  'to': $scope.dateEnd
+                };
+              } else {
+                var dataFilter = {
+                  'limit' : $scope.limit
+                };
+              }
               $http(
                 {
                   url : this.url + '/attributes',
                   method : 'POST',
-                  data : {
-                    'limit': 5
-                  },
+                  data : dataFilter,
                   headers : {
                     'api_key' : this.apiKey,
                   }
@@ -169,14 +261,26 @@
             $scope.labels.length = 0;
             emptyArray.length = 0;
             $scope.dataSeries.length = 0;
+
+            //setup series (attributes)
+            $scope.series.length = 0;
+            var attributeLength = $scope.output.data[0].attributes.length;
+            emptyArray.length = 0;
+            for (var i = 0; i < attributeLength; i++) {
+              $scope.series.push($scope.output.data[0].attributes[i].name);
+              emptyArray.push([]);
+            };
+
             angular.forEach($scope.output.data, function(item) {
-              $scope.labels.push(item.datetime);
-              angular.forEach(item.attributes, function(i) {
-                emptyArray.push(i.value);
-              });
+              $scope.labels.push($filter('date')(item.datetime, 'd MMM yyyy H:mm:ss'));
+              
+              for (var i = 0; i < item.attributes.length; i++) {
+                emptyArray[i].push(item.attributes[i].value);
+              };
             });
-            console.log(emptyArray);
-            $scope.dataSeries.push(emptyArray);
+            for (var i = 0; i < emptyArray.length; i++) {
+              $scope.dataSeries.push(emptyArray[i]);  
+            }
           }
           
         }]);
