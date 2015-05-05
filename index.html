@@ -32,6 +32,24 @@
       <h1 align="center">Sample Web App for Geeknesia API</h1>
       <hr>
       <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              General Setting
+            </div>
+            <div class="panel-body">
+              <form >
+                <div class="form-group">
+                  <label for="apiKey">API Key</label>
+                  <input type="text" class="form-control" id="apiKey" placeholder="Enter API Key" ng-model="apiKey">
+                  <pre>sample : d5eb7e61ca97bc30692d7aec3bb5861f</pre>
+                </div>
+              </form>
+            </div>
+        </div>
+      </div>
+      <div style="clear:both"></div>
+      <div class="row">
         <div class="col-md-4">
           <div class="panel panel-primary">
             <div class="panel-heading">
@@ -41,9 +59,6 @@
             <div class="panel-body">
               <form >
                 <div class="form-group">
-                  <label for="apiKey">API Key</label>
-                  <input type="text" class="form-control" id="apiKey" placeholder="Enter API Key" ng-model="device.apiKey">
-                  <pre>sample : d5eb7e61ca97bc30692d7aec3bb5861f</pre>
                   <label for="attributes">Attributes</label>
                   <input type="text" class="form-control" id="attributes" ng-model="device.attributes" placeholder="Enter data using json format and no space">
                   <pre>sample = {"temperature":"25"}</pre>
@@ -80,24 +95,24 @@
             <div class="panel-body">
               <form class="form-inline">
                 <div class="form-group">
-                  <input type="number" class="form-control" id="limit" placeholder="Limit" ng-model="setting.limit">
+                  <input type="number" class="form-control" id="limit" placeholder="Limit" ng-model="limit">
                   <label>
-                    <input type="checkbox" value="datetime" ng-model="setting.filter" id="filter">
+                    <input type="checkbox" value="datetime" ng-model="filter" id="filter">
                     Filter
                   </label>
-                  <div class='input-group date' id='datetimepicker1'>
-                      <input type='text' class="form-control" placeholder="Date start" ng-model="setting.dateStart"/>
+                  <div class='input-group date'>
+                      <input type='text' class="form-control picker" placeholder="Date start" ng-model="dateStart"/>
                       <span class="input-group-addon">
-                          <span class="glyphicon glyphicon-calendar"></span>
+                          Start
                       </span>
                   </div>
-                  <div class='input-group date' id='datetimepicker2'>
-                      <input type='text' class="form-control" placeholder="Date end" ng-model="setting.dateEnd"/>
+                  <div class='input-group date'>
+                      <input type='text' class="form-control picker" placeholder="Date end" ng-model="dateEnd"/>
                       <span class="input-group-addon">
-                          <span class="glyphicon glyphicon-calendar"></span>
+                          End
                       </span>
                   </div>
-                  <button type="button" class="btn btn-default" ng-click="update(setting)" id="submit">Update</button>
+                  <!-- <button type="button" class="btn btn-default" ng-click="update()" id="submit">Update</button> -->
                 </div>
                 
               </form>
@@ -111,7 +126,14 @@
         </div>
       </div>
     </div>
-
+    <script>
+      // $('.picker').datetimepicker({
+      //   format: 'Y-m-d h:m:s',
+      //   onSelectDate: function(ct, $i) {
+      //     $(this).trigger('input');
+      //   }
+      // });
+    </script>
     <script>
       var myApp = angular.module('formExample', ["chart.js", 'cgBusy']);
       myApp.config(['$httpProvider', function($httpProvider) {
@@ -130,8 +152,9 @@
           $scope.output;
           $scope.limit = 10;
           $scope.filter = false;
-          $scope.dateStart = '';
-          $scope.dateEnd = '';
+          var d = new Date();
+          $scope.dateStart = d.toISOString();
+          $scope.dateEnd = d.toISOString();
 
           // graph variable
           $scope.labels = [];
@@ -144,7 +167,7 @@
           };
 
           // execute getFeed every 3 seconds
-          $interval(function() { $scope.getFeeds(); }, 3000);
+          $interval(function() { $scope.getFeeds(); }, 5000);
 
           $scope.isValidJSON = function(str) {
             try {
@@ -167,38 +190,45 @@
             }
           }
 
-          $scope.update = function(setting) {
+          /*$scope.update = function(setting) {
             if (typeof(setting) == 'undefined') {
-              alert ('Tidak boleh kosong');
+              alert ('Setting tidak boleh kosong');
               return;
             }
+            console.log(setting);
             if (setting.filter == true) {
               if (typeof(setting.dateStart) == 'undefined' || typeof(setting.dateEnd) == 'undefined') {
                 alert('Field tanggal harus di isi')
               } else {
-                $scope.dateStart = setting.dateStart;
-                $scope.dateEnd = setting.dateEnd;
-                $scope.filter = setting.filter; 
-                $scope.limit = setting.limit;
+
+                // $scope.dateStart = new Date(setting.dateStart).toIsoString();
+                // $scope.dateEnd = new Date(setting.dateEnd).toIsoString();
+                // $scope.filter = setting.filter; 
+                // $scope.limit = setting.limit;
+
+                // console.log($scope.dateStart);
               }
             } else {
               if (typeof(setting.limit) == 'undefined') {
                 alert('Limit tidak boleh kosong');
               } else {
-                $scope.limit = setting.limit;  
+                // console.log('limit updated');
+                // $scope.dateStart = '';
+                // $scope.dateEnd = '';
+                // $scope.filter = false; 
+                // $scope.limit = setting.limit;  
               }
               
             }
             
-          }
+          }*/
 
           $scope.execute = function(device) {
             if (this.validateForm(device) == false) {
               alert('Fill all the fields');
             } else {
-              this.apiKey = device.apiKey;
               if (this.isValidJSON(device.attributes)) {
-                $scope.myPromise = $http.get(this.url + '/data?api_key=' + device.apiKey + '&attributes=' + device.attributes, 
+                $scope.myPromise = $http.get(this.url + '/data?api_key=' + this.apiKey + '&attributes=' + device.attributes, 
                   {
                     method:'GET', 
                     headers:{
@@ -237,7 +267,7 @@
                   method : 'POST',
                   data : dataFilter,
                   headers : {
-                    'api_key' : this.apiKey,
+                    'api_key' : this.apiKey
                   }
                 }).success(function(data, status, headers, config) {
                   console.log(data);
@@ -264,6 +294,10 @@
 
             //setup series (attributes)
             $scope.series.length = 0;
+            if (typeof($scope.output.data[0]) == 'undefined') {
+              alert('No data retrieved. Please change the start and end date or uncheck the filter');
+              return;
+            }
             var attributeLength = $scope.output.data[0].attributes.length;
             emptyArray.length = 0;
             for (var i = 0; i < attributeLength; i++) {
