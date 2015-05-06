@@ -23,6 +23,8 @@
     <script src="js/Chart.js"></script>
     <script src="js/angular-chart.js"></script>
     <script src="js/angular-busy.js"></script>
+    <script src="js/angular-sanitize.js"></script>
+    <script src="js/ng-csv.min.js"></script>
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/angular-chart.css">
     <link rel="stylesheet" href="css/angular-busy.css">
@@ -72,6 +74,7 @@
           <div class="panel panel-info">
             <div class="panel-heading">
               Sensor Data Feed
+              <button type="button" ng-csv="exportCSV()" filename="data.csv">Export to CSV</button>
             </div>
             <div class="panel-body">
               <table class="table table-stripped">
@@ -135,7 +138,7 @@
       // });
     </script>
     <script>
-      var myApp = angular.module('formExample', ["chart.js", 'cgBusy']);
+      var myApp = angular.module('formExample', ["chart.js", 'cgBusy', 'ngSanitize', 'ngCsv']);
       myApp.config(['$httpProvider', function($httpProvider) {
                 $httpProvider.defaults.useXDomain = true;
                 delete $httpProvider.defaults.headers.common['X-Requested-With'];
@@ -317,6 +320,30 @@
             }
           }
           
+
+          $scope.exportCSV = function() {
+            // format data
+            var header = [];
+            header.push('timestamp');
+            angular.forEach($scope.series, function(item) {
+              header.push(item);
+            });
+
+            var data = [];
+            data.push(header);
+
+            // transpose the data
+            for (var i = 0; i < $scope.labels.length; i++) {
+              var emptyArray = [];
+              emptyArray.push($scope.labels[i]);
+              for(var j = 0; j < $scope.dataSeries.length; j++) {
+                emptyArray.push($scope.dataSeries[j][i]);
+              }
+              data.push(emptyArray);
+            }
+
+            return data;
+          }
         }]);
     </script>
   </body>
