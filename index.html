@@ -95,10 +95,15 @@
             <div class="panel-heading">
               Setting for retrieving data
             </div>
+            <div cg-busy="{promise:myPromise2,message:'Retrieving Sensor Data'}"></div>
             <div class="panel-body">
               <form class="form-inline">
                 <div class="form-group">
+                  <label>Interval</label>
+                  <input type="number" class="form-control" id="interval" placeholder="Interval" ng-model="interval" title="Interval in second">
+                  <label>Limit</label>
                   <input type="number" class="form-control" id="limit" placeholder="Limit" ng-model="limit">
+                  <br><br>
                   <label>
                     <input type="checkbox" value="datetime" ng-model="filter" id="filter">
                     Filter
@@ -115,7 +120,7 @@
                           End
                       </span>
                   </div>
-                  <!-- <button type="button" class="btn btn-default" ng-click="update()" id="submit">Update</button> -->
+                  <button type="button" class="btn btn-default" ng-click="getFeeds()" id="submit">Retrieve</button>
                 </div>
                 
               </form>
@@ -150,10 +155,12 @@
           $scope.url = 'http://api.geeknesia.com/api';
           $scope.apiKey = 'd5eb7e61ca97bc30692d7aec3bb5861f';
           $scope.myPromise;
+          $scope.myPromise2;
+          $scope.interval = 15; // 15 detik
 
           // getFeed response variable
           $scope.output;
-          $scope.limit = 10;
+          $scope.limit = 5;
           $scope.filter = false;
           var d = new Date();
           $scope.dateStart = d.toISOString();
@@ -169,8 +176,8 @@
             console.log(points, evt);
           };
 
-          // execute getFeed every 3 seconds
-          $interval(function() { $scope.getFeeds(); }, 5000);
+          // execute getFeed every 10 seconds
+          //$interval(function() { $scope.getFeeds(); }, $scope.interval * 1000);
 
           $scope.isValidJSON = function(str) {
             try {
@@ -264,7 +271,7 @@
                   'limit' : $scope.limit
                 };
               }
-              $http(
+              $scope.myPromise2 = $http(
                 {
                   url : this.url + '/attributes',
                   method : 'POST',
