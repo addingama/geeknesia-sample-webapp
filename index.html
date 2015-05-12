@@ -99,11 +99,10 @@
             <div class="panel-body">
               <form class="form-inline">
                 <div class="form-group">
-                  <label>Interval</label>
-                  <input type="number" class="form-control" id="interval" placeholder="Interval" ng-model="interval" title="Interval in second">
+                  <!-- <label>Interval</label>
+                  <input type="number" class="form-control" id="interval" placeholder="Interval" ng-model="interval" title="Interval in second"> -->
                   <label>Limit</label>
                   <input type="number" class="form-control" id="limit" placeholder="Limit" ng-model="limit">
-                  <br><br>
                   <label>
                     <input type="checkbox" value="datetime" ng-model="filter" id="filter">
                     Filter
@@ -120,6 +119,7 @@
                           End
                       </span>
                   </div>
+                  <br><br>
                   <button type="button" class="btn btn-default" ng-click="getFeeds()" id="submit">Retrieve</button>
                 </div>
                 
