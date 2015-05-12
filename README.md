@@ -1,7 +1,7 @@
 # geeknesia-sample-code
 This is sample code how to use geeknesia api to retrieve data using webapp with angular.js.
 
-If you use jQuery instead of angular.js, you need to manual biding the api response with the view.
+If you use jQuery instead of angular.js, you need to manual binding the api response with the view.
 
 #### Sample using jQuery
 Check your api key using hello api
