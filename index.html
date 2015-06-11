@@ -13,8 +13,8 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    <!-- 
-      If you not using virtual host then you need to fix the js and css file path 
+    <!--
+      If you not using virtual host then you need to fix the js and css file path
       Jika tidak menggunakan virtual host maka perbaiki file path untuk js dan css
       contoh :  /js/angular.js
                 file:///E:/Program%20Files/wamp/www/geeknesia_sample_webapp/js/angular.js
@@ -34,7 +34,7 @@
       <h1 align="center">Sample Web App for Geeknesia API</h1>
       <hr>
       <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-4">
           <div class="panel panel-primary">
             <div class="panel-heading">
               General Setting
@@ -48,6 +48,25 @@
                 </div>
               </form>
             </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              Send action to device using MQTT
+            </div>
+            <div class="panel-body">
+              <div cg-busy="{promise:myPromise3,message:'Sending Device Action'}"></div>
+              <form >
+                <div class="form-group">
+                  <label for="action">Action</label>
+                  <input type="text" class="form-control" id="action" placeholder="Enter Action String" ng-model="action">
+                  <pre>sample : on</pre>
+                </div>
+                <button type="button" class="btn btn-default" ng-click="sendAction(action)" id="submit">Send Action</button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
       <div style="clear:both"></div>
@@ -65,7 +84,7 @@
                   <input type="text" class="form-control" id="attributes" ng-model="device.attributes" placeholder="Enter data using json format and no space">
                   <pre>sample = {"temperature":"25"}</pre>
                 </div>
-                
+
                 <button type="button" class="btn btn-default" ng-click="execute(device)" id="submit">Send Data</button>
               </form>
             </div>
@@ -122,14 +141,14 @@
                   <br><br>
                   <button type="button" class="btn btn-default" ng-click="getFeeds()" id="submit">Retrieve</button>
                 </div>
-                
+
               </form>
             </div>
           </div>
-          
-          <canvas class="chart chart-line" id="line" data="dataSeries" labels="labels" 
+
+          <canvas class="chart chart-line" id="line" data="dataSeries" labels="labels"
     legend="true" series="series" click="onClick">
-          
+
         </canvas>
         </div>
       </div>
@@ -156,7 +175,9 @@
           $scope.apiKey = 'd5eb7e61ca97bc30692d7aec3bb5861f';
           $scope.myPromise;
           $scope.myPromise2;
+          $scope.myPromise3;
           $scope.interval = 15; // 15 detik
+          $scope.action;
 
           // getFeed response variable
           $scope.output;
@@ -213,7 +234,7 @@
 
                 // $scope.dateStart = new Date(setting.dateStart).toIsoString();
                 // $scope.dateEnd = new Date(setting.dateEnd).toIsoString();
-                // $scope.filter = setting.filter; 
+                // $scope.filter = setting.filter;
                 // $scope.limit = setting.limit;
 
                 // console.log($scope.dateStart);
@@ -225,12 +246,12 @@
                 // console.log('limit updated');
                 // $scope.dateStart = '';
                 // $scope.dateEnd = '';
-                // $scope.filter = false; 
-                // $scope.limit = setting.limit;  
+                // $scope.filter = false;
+                // $scope.limit = setting.limit;
               }
-              
+
             }
-            
+
           }*/
 
           $scope.execute = function(device) {
@@ -238,11 +259,12 @@
               alert('Fill all the fields');
             } else {
               if (this.isValidJSON(device.attributes)) {
-                $scope.myPromise = $http.get(this.url + '/data?api_key=' + this.apiKey + '&attributes=' + device.attributes, 
+                $scope.myPromise = $http.get(this.url + '/data?attributes=' + device.attributes,
                   {
-                    method:'GET', 
+                    method:'GET',
                     headers:{
-                      'Content-Type' : 'text/plain'
+                      'Content-Type' : 'text/plain',
+                      'api_key' : this.apiKey
                     }
                   }
                 )
@@ -251,9 +273,25 @@
                 });
               } else {
                 alert('Invalid format for attributes');
-              }  
-            }  
+              }
+            }
           };
+
+          $scope.sendAction = function(action) {
+            $scope.myPromise3 = $http.get(this.url + '/control/' + action,
+              {
+                method:'GET',
+                headers:{
+                  'Content-Type' : 'text/plain',
+                  'api_key' : this.apiKey
+                }
+              }
+            )
+            .success(function(data, status, headers, config) {
+              console.log(data);
+            });
+          };
+
 
           $scope.getFeeds = function() {
             if (this.apiKey == null) {
@@ -287,7 +325,7 @@
             }
           }
 
-          // formatting the getFeed response 
+          // formatting the getFeed response
           $scope.formatOutput = function(str) {
             var attributes = angular.fromJson(str);
             var output = '';
@@ -317,16 +355,16 @@
 
             angular.forEach($scope.output.data, function(item) {
               $scope.labels.push($filter('date')(item.datetime, 'd MMM yyyy H:mm:ss'));
-              
+
               for (var i = 0; i < item.attributes.length; i++) {
                 emptyArray[i].push(item.attributes[i].value);
               };
             });
             for (var i = 0; i < emptyArray.length; i++) {
-              $scope.dataSeries.push(emptyArray[i]);  
+              $scope.dataSeries.push(emptyArray[i]);
             }
           }
-          
+
 
           $scope.exportCSV = function() {
             // format data
