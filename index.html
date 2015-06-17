@@ -278,8 +278,7 @@
                 };
               } else {
                 var dataFilter = {
-                  'limit' : $scope.limit,
-                  'test': 'test'
+                  'limit' : $scope.limit
                 };
               }
               $scope.myPromise2 = $http(
@@ -288,7 +287,7 @@
                   method : 'POST',
                   data : dataFilter,
                   headers : {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/json'
                   }
                 }).success(function(data, status, headers, config) {
                   console.log(data);
