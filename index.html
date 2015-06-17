@@ -42,6 +42,13 @@
             <div class="panel-body">
               <form >
                 <div class="form-group">
+                  <label for="url">API Server</label>
+                  <select name="" id="input" class="form-control" required="required" ng-model="url">
+                    <option value="http://api.geeknesia.com/api">Node</option>
+                    <option value="http://api-phalcon.geeknesia.com/api">Phalcon</option>
+                  </select>
+                </div>
+                <div class="form-group">
                   <label for="apiKey">API Key</label>
                   <input type="text" class="form-control" id="apiKey" placeholder="Enter API Key" ng-model="apiKey">
                   <pre>sample : d5eb7e61ca97bc30692d7aec3bb5861f</pre>
@@ -171,7 +178,7 @@
 
       myApp.controller('ExampleController', ['$scope', '$http', '$interval', '$filter', function($scope, $http, $interval, $filter) {
           // general variable with default value
-          $scope.url = 'http://api.geeknesia.com/api';
+          $scope.url = 'http://api-phalcon.geeknesia.com/api';
           $scope.apiKey = 'd5eb7e61ca97bc30692d7aec3bb5861f';
           $scope.myPromise;
           $scope.myPromise2;
@@ -221,50 +228,16 @@
             }
           }
 
-          /*$scope.update = function(setting) {
-            if (typeof(setting) == 'undefined') {
-              alert ('Setting tidak boleh kosong');
-              return;
-            }
-            console.log(setting);
-            if (setting.filter == true) {
-              if (typeof(setting.dateStart) == 'undefined' || typeof(setting.dateEnd) == 'undefined') {
-                alert('Field tanggal harus di isi')
-              } else {
-
-                // $scope.dateStart = new Date(setting.dateStart).toIsoString();
-                // $scope.dateEnd = new Date(setting.dateEnd).toIsoString();
-                // $scope.filter = setting.filter;
-                // $scope.limit = setting.limit;
-
-                // console.log($scope.dateStart);
-              }
-            } else {
-              if (typeof(setting.limit) == 'undefined') {
-                alert('Limit tidak boleh kosong');
-              } else {
-                // console.log('limit updated');
-                // $scope.dateStart = '';
-                // $scope.dateEnd = '';
-                // $scope.filter = false;
-                // $scope.limit = setting.limit;
-              }
-
-            }
-
-          }*/
-
           $scope.execute = function(device) {
             if (this.validateForm(device) == false) {
               alert('Fill all the fields');
             } else {
               if (this.isValidJSON(device.attributes)) {
-                $scope.myPromise = $http.get(this.url + '/data?attributes=' + device.attributes,
+                $scope.myPromise = $http.get(this.url + '/data?attributes=' + device.attributes+'&api_key='+this.apiKey,
                   {
                     method:'GET',
                     headers:{
-                      'Content-Type' : 'text/plain',
-                      'api_key' : this.apiKey
+                      'Content-Type' : 'text/plain'
                     }
                   }
                 )
@@ -278,12 +251,11 @@
           };
 
           $scope.sendAction = function(action) {
-            $scope.myPromise3 = $http.get(this.url + '/control/' + action,
+            $scope.myPromise3 = $http.get(this.url + '/control/' + action+'?api_key='+ this.apiKey,
               {
                 method:'GET',
                 headers:{
-                  'Content-Type' : 'text/plain',
-                  'api_key' : this.apiKey
+                  'Content-Type' : 'text/plain'
                 }
               }
             )
@@ -311,12 +283,9 @@
               }
               $scope.myPromise2 = $http(
                 {
-                  url : this.url + '/attributes',
+                  url : this.url + '/attributes?api_key='+this.apiKey,
                   method : 'POST',
                   data : dataFilter,
-                  headers : {
-                    'api_key' : this.apiKey
-                  }
                 }).success(function(data, status, headers, config) {
                   console.log(data);
                   $scope.output = data.output;
