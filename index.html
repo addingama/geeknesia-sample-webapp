@@ -278,7 +278,8 @@
                 };
               } else {
                 var dataFilter = {
-                  'limit' : $scope.limit
+                  'limit' : $scope.limit,
+                  'test': 'test'
                 };
               }
               $scope.myPromise2 = $http(
@@ -286,6 +287,9 @@
                   url : this.url + '/attributes?api_key='+this.apiKey,
                   method : 'POST',
                   data : dataFilter,
+                  headers : {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                  }
                 }).success(function(data, status, headers, config) {
                   console.log(data);
                   $scope.output = data.output;
