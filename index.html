@@ -41,13 +41,13 @@
             </div>
             <div class="panel-body">
               <form >
-                <div class="form-group">
+                <!-- <div class="form-group">
                   <label for="url">API Server</label>
                   <select name="" id="input" class="form-control" required="required" ng-model="url">
                     <option value="http://api.geeknesia.com/api">OLD</option>
                     <option value="http://api-phalcon.geeknesia.com/api">NEW</option>
                   </select>
-                </div>
+                </div> -->
                 <div class="form-group">
                   <label for="apiKey">API Key</label>
                   <input type="text" class="form-control" id="apiKey" placeholder="Enter API Key" ng-model="apiKey">
@@ -178,7 +178,7 @@
 
       myApp.controller('ExampleController', ['$scope', '$http', '$interval', '$filter', function($scope, $http, $interval, $filter) {
           // general variable with default value
-          $scope.url = 'http://api-phalcon.geeknesia.com/api';
+          $scope.url = 'http://api.geeknesia.com/api';
           $scope.apiKey = 'd5eb7e61ca97bc30692d7aec3bb5861f';
           $scope.myPromise;
           $scope.myPromise2;
